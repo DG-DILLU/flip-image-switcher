@@ -241,6 +241,7 @@
       height: 100%;
       object-fit: contain;
       user-select: none;
+      -webkit-touch-callout: none;
       -webkit-user-drag: none;
       -webkit-tap-highlight-color: transparent;
       touch-action: none;
@@ -315,6 +316,7 @@
       color: inherit;
       cursor: pointer;
       touch-action: none;
+      -webkit-touch-callout: none;
     }
 
     .preview-button:disabled { cursor: default; }
@@ -508,7 +510,7 @@
               <strong>Your preview lives here</strong>
               <span>Add two images to see the first one appear.</span>
             </span>
-            <img class="preview-image" id="preview-image" alt="" hidden>
+            <img class="preview-image" id="preview-image" alt="" draggable="false" hidden>
             <span class="preview-badge" id="preview-badge" hidden>
               <span class="badge-dot" aria-hidden="true"></span>
               <span id="badge-text">IMAGE 01</span>
@@ -749,6 +751,12 @@
 
     backButton.addEventListener("click", closeFullScreenViewer);
 
+    function suppressImageContextMenu(event) {
+      event.preventDefault();
+    }
+
+    previewButton.addEventListener("contextmenu", suppressImageContextMenu);
+    fullScreenImage.addEventListener("contextmenu", suppressImageContextMenu);
     previewButton.addEventListener("pointerdown", showSecondImageWhilePressed);
     fullScreenImage.addEventListener("pointerdown", showSecondImageWhilePressed);
     document.addEventListener("pointerup", restoreFirstImage);
