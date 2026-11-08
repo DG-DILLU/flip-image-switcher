@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f4ef">
+  <title>Flip — Two images, one tap</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #24251f;
+      background: #f5f4ef;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+
+    body {
+      min-width: 320px;
+      min-height: 100vh;
+      margin: 0;
+      padding: 26px;
+      background:
+        radial-gradient(ellipse at 50% 35%, rgba(232, 224, 204, .35), transparent 52%),
+        #f5f4ef;
+    }
+
+    button, input { font: inherit; }
+
+    .page {
+      width: min(100%, 1120px);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 0 25px;
+      border-bottom: 1px solid #e4e2d9;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      color: inherit;
+      font-size: 15px;
+      font-weight: 750;
+      letter-spacing: -.04em;
+      text-decoration: none;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 30px;
+      height: 30px;
+      place-items: center;
+      border-radius: 9px;
+      background: #d7ed72;
+      font-size: 17px;
+    }
+
+    .local-note {
+      color: #77786f;
+      font-size: 12px;
+      font-weight: 550;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(300px, .92fr);
+      gap: clamp(42px, 8vw, 104px);
+      align-items: center;
+      padding: clamp(48px, 8vh, 90px) 0 58px;
+    }
+
+    .eyebrow {
+      margin: 0 0 18px;
+      color: #77786f;
+      font-size: 11px;
+      font-weight: 750;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 520px;
+      margin: 0;
+      font-size: clamp(44px, 6.4vw, 76px);
+      font-weight: 650;
+      letter-spacing: -.075em;
+      line-height: .98;
+    }
+
+    h1 span { color: #899a46; }
+
+    .intro {
+      max-width: 390px;
+      margin: 22px 0 34px;
+      color: #77786f;
+      font-size: 15px;
+      line-height: 1.65;
+    }
+
+    .uploads {
+      display: grid;
+      gap: 12px;
+      max-width: 440px;
+    }
+
+    .upload-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 82px;
+      padding: 14px;
+      border: 1px solid #e4e2d9;
+      border-radius: 15px;
+      background: rgba(255, 255, 255, .6);
+      transition: border-color .2s ease, background .2s ease;
+    }
+
+    .upload-card:focus-within {
+      border-color: #899a46;
+      background: #fff;
+    }
+
+    .upload-index {
+      display: grid;
+      flex: 0 0 42px;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 12px;
+      background: #eeede6;
+      color: #77786f;
+      font-size: 13px;
+      font-weight: 750;
+    }
+
+    .upload-info {
+      display: grid;
+      flex: 1;
+      min-width: 0;
+      gap: 4px;
+    }
+
+    .upload-title {
+      overflow: hidden;
+      font-size: 13px;
+      font-weight: 700;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .upload-filename {
+      overflow: hidden;
+      color: #898a80;
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .file-input {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      clip-path: inset(50%);
+    }
+
+    .upload-action {
+      display: inline-flex;
+      flex: 0 0 auto;
+      min-height: 38px;
+      align-items: center;
+      justify-content: center;
+      padding: 0 13px;
+      border: 1px solid #deddd4;
+      border-radius: 10px;
+      background: #fff;
+      color: #36372f;
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      transition: background .16s ease, border-color .16s ease;
+    }
+
+    .upload-action:hover { border-color: #c9c8bd; background: #fafaf6; }
+    .upload-action:focus-visible { outline: 3px solid #899a46; outline-offset: 3px; }
+
+    .run-button {
+      display: flex;
+      width: 100%;
+      min-height: 48px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin-top: 4px;
+      border: 0;
+      border-radius: 12px;
+      background: #899a46;
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 750;
+      transition: background .16s ease, transform .16s ease;
+    }
+
+    .run-button:hover { background: #78893b; }
+    .run-button:active { transform: scale(.99); }
+    .run-button:focus-visible { outline: 3px solid #899a46; outline-offset: 3px; }
+    .run-button[hidden] { display: none; }
+
+    .full-screen-viewer {
+      position: fixed;
+      z-index: 10;
+      inset: 0;
+      display: grid;
+      width: 100%;
+      height: 100%;
+      height: 100dvh;
+      place-items: center;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .full-screen-viewer[hidden] { display: none; }
+
+    .full-screen-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: none;
+    }
+
+    .back-button {
+      position: absolute;
+      z-index: 1;
+      top: max(14px, env(safe-area-inset-top));
+      left: max(14px, env(safe-area-inset-left));
+      display: inline-flex;
+      min-height: 44px;
+      align-items: center;
+      gap: 8px;
+      padding: 0 15px;
+      border: 1px solid rgba(255, 255, 255, .35);
+      border-radius: 999px;
+      background: rgba(25, 25, 25, .68);
+      color: #fff;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 650;
+      -webkit-tap-highlight-color: transparent;
+      backdrop-filter: blur(10px);
+    }
+
+    .back-button:focus-visible { outline: 3px solid #d7ed72; outline-offset: 3px; }
+
+    .privacy {
+      margin: 15px 0 0;
+      color: #898a80;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .preview-area {
+      display: grid;
+      justify-items: center;
+      gap: 17px;
+    }
+
+    .preview-frame {
+      position: relative;
+      width: min(100%, 430px);
+      aspect-ratio: 1 / 1.08;
+      padding: 11px;
+      overflow: hidden;
+      border: 1px solid #e4e2d9;
+      border-radius: 23px;
+      background: #ebe9e1;
+      box-shadow: 0 18px 50px rgba(48, 47, 36, .09);
+    }
+
+    .preview-button {
+      position: relative;
+      display: grid;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      border-radius: 15px;
+      background:
+        linear-gradient(45deg, #e6e4dc 25%, transparent 25%),
+        linear-gradient(-45deg, #e6e4dc 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, #e6e4dc 75%),
+        linear-gradient(-45deg, transparent 75%, #e6e4dc 75%),
+        #efeee8;
+      background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+      background-size: 16px 16px;
+      color: inherit;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    .preview-button:disabled { cursor: default; }
+    .preview-button:not(:disabled):focus-visible { outline: 3px solid #899a46; outline-offset: -5px; }
+
+    .preview-image {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      transition: opacity .18s ease, transform .35s cubic-bezier(.2, .8, .2, 1);
+    }
+
+    .preview-button:not(:disabled):active .preview-image { transform: scale(.985); }
+
+    .placeholder {
+      display: grid;
+      justify-items: center;
+      gap: 14px;
+      padding: 26px;
+      color: #898a80;
+      text-align: center;
+    }
+
+    .placeholder-icon {
+      display: grid;
+      width: 54px;
+      height: 54px;
+      place-items: center;
+      border: 1px solid #dcdad0;
+      border-radius: 17px;
+      background: rgba(255, 255, 255, .6);
+      color: #77786f;
+      font-size: 22px;
+    }
+
+    .placeholder strong {
+      color: #5f6058;
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .placeholder span {
+      max-width: 200px;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .preview-badge {
+      position: absolute;
+      right: 24px;
+      bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 8px 11px;
+      border: 1px solid rgba(255, 255, 255, .6);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .82);
+      color: #414239;
+      font-size: 10px;
+      font-weight: 700;
+      pointer-events: none;
+      backdrop-filter: blur(8px);
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #899a46;
+    }
+
+    .preview-meta {
+      display: flex;
+      width: min(100%, 430px);
+      align-items: center;
+      justify-content: space-between;
+      color: #77786f;
+      font-size: 11px;
+    }
+
+    .preview-meta strong {
+      color: #36372f;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .tap-hint {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .tap-icon { font-size: 13px; }
+
+    .error-message {
+      min-height: 18px;
+      margin: 10px 0 0;
+      color: #a63e35;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 760px) {
+      body { padding: 18px 20px; }
+      .content {
+        grid-template-columns: 1fr;
+        gap: 38px;
+        padding: 44px 0 32px;
+      }
+      .intro { margin: 17px 0 25px; }
+      .uploads { max-width: none; }
+      .preview-area { grid-row: 1; }
+      .preview-frame { width: min(100%, 370px); }
+      .preview-meta { width: min(100%, 370px); }
+      .eyebrow { margin-bottom: 13px; }
+    }
+
+    @media (max-width: 400px) {
+      body { padding: 14px; }
+      .content { padding-top: 30px; }
+      .upload-card { gap: 10px; padding: 11px; }
+      .upload-action { padding: 0 10px; }
+      .local-note { font-size: 10px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { transition-duration: .01ms !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Flip home">
+        <span class="brand-mark" aria-hidden="true">↗</span>
+        <span>flip</span>
+      </a>
+      <span class="local-note">Private by design · Images stay on your device</span>
+    </header>
+
+    <section class="content" aria-labelledby="page-title">
+      <div class="setup">
+        <p class="eyebrow">A tiny image switcher</p>
+        <h1 id="page-title">Two moments.<br><span>One tap.</span></h1>
+        <p class="intro">Choose two images, then press and hold the preview to show the second. Release to return to the first.</p>
+
+        <div class="uploads" aria-label="Choose your two images">
+          <div class="upload-card">
+            <span class="upload-index" aria-hidden="true">01</span>
+            <span class="upload-info">
+              <span class="upload-title">First image</span>
+              <span class="upload-filename" id="filename-0">Nothing selected yet</span>
+            </span>
+            <input class="file-input" id="image-0" type="file" accept="image/*" aria-label="Choose first image">
+            <label class="upload-action" for="image-0">Choose image</label>
+          </div>
+          <div class="upload-card">
+            <span class="upload-index" aria-hidden="true">02</span>
+            <span class="upload-info">
+              <span class="upload-title">Second image</span>
+              <span class="upload-filename" id="filename-1">Nothing selected yet</span>
+            </span>
+            <input class="file-input" id="image-1" type="file" accept="image/*" aria-label="Choose second image">
+            <label class="upload-action" for="image-1">Choose image</label>
+          </div>
+          <div class="upload-card">
+            <span class="upload-index" aria-hidden="true">03</span>
+            <span class="upload-info">
+              <span class="upload-title">Touch audio (optional)</span>
+              <span class="upload-filename" id="audio-filename">No audio selected</span>
+            </span>
+            <input class="file-input" id="audio-input" type="file" accept="audio/*" aria-label="Choose audio to play while touching an image">
+            <label class="upload-action" for="audio-input">Choose audio</label>
+          </div>
+        </div>
+        <button class="run-button" id="run-button" type="button" hidden>
+          <span aria-hidden="true">▶</span>
+          <span>Open full screen</span>
+        </button>
+        <p class="error-message" id="error-message" role="alert"></p>
+        <p class="privacy">Audio plays only while you press an image and stops on release. Your media stays on this device.</p>
+      </div>
+
+      <div class="preview-area">
+        <div class="preview-frame">
+          <button class="preview-button" id="preview-button" type="button" disabled aria-label="Choose two images to begin">
+            <span class="placeholder" id="placeholder">
+              <span class="placeholder-icon" aria-hidden="true">▧</span>
+              <strong>Your preview lives here</strong>
+              <span>Add two images to see the first one appear.</span>
+            </span>
+            <img class="preview-image" id="preview-image" alt="" hidden>
+            <span class="preview-badge" id="preview-badge" hidden>
+              <span class="badge-dot" aria-hidden="true"></span>
+              <span id="badge-text">IMAGE 01</span>
+            </span>
+          </button>
+        </div>
+        <div class="preview-meta">
+          <strong id="preview-state">Waiting for your images</strong>
+          <span class="tap-hint"><span class="tap-icon" aria-hidden="true">↻</span> Hold to preview</span>
+        </div>
+        <span class="file-input" id="announcer" aria-live="polite" aria-atomic="true"></span>
+      </div>
+    </section>
+  </main>
+
+  <section class="full-screen-viewer" id="full-screen-viewer" aria-label="Full-screen image viewer" hidden>
+    <button class="back-button" id="back-button" type="button" aria-label="Back to image selection">
+      <span aria-hidden="true">←</span>
+      <span>Back</span>
+    </button>
+    <img class="full-screen-image" id="full-screen-image" alt="Image 1 of 2. Tap to switch images." draggable="false">
+  </section>
+  <audio id="touch-audio" preload="auto" loop></audio>
+
+  <script>
+    const imageData = [null, null];
+    const readVersions = [0, 0];
+    const inputs = [document.querySelector("#image-0"), document.querySelector("#image-1")];
+    const filenameLabels = [document.querySelector("#filename-0"), document.querySelector("#filename-1")];
+    const previewButton = document.querySelector("#preview-button");
+    const previewImage = document.querySelector("#preview-image");
+    const placeholder = document.querySelector("#placeholder");
+    const previewBadge = document.querySelector("#preview-badge");
+    const badgeText = document.querySelector("#badge-text");
+    const previewState = document.querySelector("#preview-state");
+    const errorMessage = document.querySelector("#error-message");
+    const announcer = document.querySelector("#announcer");
+    const runButton = document.querySelector("#run-button");
+    const fullScreenViewer = document.querySelector("#full-screen-viewer");
+    const fullScreenImage = document.querySelector("#full-screen-image");
+    const backButton = document.querySelector("#back-button");
+    const audioInput = document.querySelector("#audio-input");
+    const audioFilename = document.querySelector("#audio-filename");
+    const touchAudio = document.querySelector("#touch-audio");
+    let activeIndex = 0;
+    let activePointerId = null;
+    let enteredNativeFullscreen = false;
+    let audioUrl = null;
+
+    function renderPreview() {
+      const hasFirstImage = Boolean(imageData[0]);
+      const hasBothImages = hasFirstImage && Boolean(imageData[1]);
+
+      previewButton.disabled = !hasBothImages;
+      runButton.hidden = !hasBothImages;
+      previewButton.setAttribute(
+        "aria-label",
+        hasBothImages
+          ? `Showing image ${activeIndex + 1} of 2. Press and hold to preview the second image.`
+          : "Choose two images to begin"
+      );
+      previewImage.hidden = !hasFirstImage;
+      placeholder.hidden = hasFirstImage;
+      previewBadge.hidden = !hasFirstImage;
+
+      if (hasFirstImage) {
+        previewImage.src = imageData[activeIndex];
+        badgeText.textContent = `IMAGE ${String(activeIndex + 1).padStart(2, "0")}`;
+      }
+
+      if (hasBothImages) {
+        previewState.textContent = `Showing image ${activeIndex + 1} of 2`;
+        announcer.textContent = `Two images ready. Showing image ${activeIndex + 1}. Press and hold to preview the second image; release to return to the first.`;
+      } else if (hasFirstImage) {
+        previewState.textContent = "Add your second image";
+        announcer.textContent = "First image selected. Choose a second image to enable switching.";
+      } else {
+        previewState.textContent = "Waiting for your images";
+        announcer.textContent = "";
+      }
+    }
+
+    function readImage(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.addEventListener("load", () => {
+          if (typeof reader.result !== "string") {
+            reject(new Error("The selected image could not be read."));
+            return;
+          }
+          resolve(reader.result);
+        });
+        reader.addEventListener("error", () => {
+          reject(reader.error || new Error("The selected image could not be read."));
+        });
+        reader.readAsDataURL(file);
+      });
+    }
+
+    inputs.forEach((input, index) => {
+      input.addEventListener("change", () => {
+        const file = input.files && input.files[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+          errorMessage.textContent = "That file doesn't look like an image. Please choose an image file.";
+          input.value = "";
+          return;
+        }
+
+        errorMessage.textContent = "";
+        const version = ++readVersions[index];
+        imageData[index] = null;
+        filenameLabels[index].textContent = file.name;
+        filenameLabels[index].title = file.name;
+        activeIndex = 0;
+        renderPreview();
+
+        readImage(file).then((dataUrl) => {
+          if (readVersions[index] !== version) return;
+          imageData[index] = dataUrl;
+          renderPreview();
+        }).catch((error) => {
+          if (readVersions[index] !== version) return;
+          filenameLabels[index].textContent = "Could not read this image";
+          errorMessage.textContent = error.message;
+          renderPreview();
+        });
+      });
+    });
+
+    audioInput.addEventListener("change", () => {
+      const file = audioInput.files && audioInput.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith("audio/")) {
+        errorMessage.textContent = "That file doesn't look like audio. Please choose an audio file.";
+        audioInput.value = "";
+        return;
+      }
+
+      stopTouchAudio();
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+      audioUrl = URL.createObjectURL(file);
+      touchAudio.src = audioUrl;
+      audioFilename.textContent = file.name;
+      audioFilename.title = file.name;
+      errorMessage.textContent = "";
+    });
+
+    touchAudio.addEventListener("error", () => {
+      errorMessage.textContent = "This audio file couldn't be loaded. Please choose a different audio file.";
+    });
+
+    previewImage.addEventListener("error", () => {
+      const failedIndex = activeIndex;
+      const failedImage = imageData[failedIndex];
+      if (!failedImage || previewImage.getAttribute("src") !== failedImage) return;
+
+      imageData[failedIndex] = null;
+      filenameLabels[failedIndex].textContent = "Could not open this image";
+      if (activeIndex === 1) activeIndex = 0;
+      errorMessage.textContent = "This image couldn't be opened. Please choose a different image file.";
+      renderPreview();
+    });
+
+    function renderFullScreenImage() {
+      fullScreenImage.src = imageData[activeIndex];
+      fullScreenImage.alt = activeIndex === 0
+        ? "First image. Press and hold to preview the second image."
+        : "Second image preview. Release to return to the first image.";
+    }
+
+    function showSecondImageWhilePressed(event) {
+      if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+      if (!imageData[0] || !imageData[1]) return;
+
+      activePointerId = event.pointerId;
+      event.preventDefault();
+      activeIndex = 1;
+      renderPreview();
+      if (!fullScreenViewer.hidden) renderFullScreenImage();
+
+      if (touchAudio.src) {
+        touchAudio.currentTime = 0;
+        touchAudio.play().catch(() => {
+          errorMessage.textContent = "The audio couldn't be played. Choose a supported audio file and try again.";
+        });
+      }
+    }
+
+    function stopTouchAudio() {
+      touchAudio.pause();
+      touchAudio.currentTime = 0;
+    }
+
+    function restoreFirstImage(event) {
+      if (activePointerId === null) return;
+      if (event && "pointerId" in event && event.pointerId !== activePointerId) return;
+      activePointerId = null;
+      stopTouchAudio();
+      activeIndex = 0;
+      renderPreview();
+      if (!fullScreenViewer.hidden) renderFullScreenImage();
+    }
+
+    async function closeFullScreenViewer() {
+      fullScreenViewer.hidden = true;
+      document.body.style.overflow = "";
+      restoreFirstImage();
+      if (document.fullscreenElement && document.exitFullscreen) {
+        try {
+          await document.exitFullscreen();
+        } catch {
+          errorMessage.textContent = "The browser couldn't exit full screen. Use your browser's back or escape control.";
+        }
+      }
+      runButton.focus();
+    }
+
+    runButton.addEventListener("click", async () => {
+      if (!imageData[0] || !imageData[1]) return;
+
+      errorMessage.textContent = "";
+      renderFullScreenImage();
+      fullScreenViewer.hidden = false;
+      document.body.style.overflow = "hidden";
+      backButton.focus({ preventScroll: true });
+
+      if (fullScreenViewer.requestFullscreen) {
+        try {
+          await fullScreenViewer.requestFullscreen();
+        } catch {
+          errorMessage.textContent = "Browser full-screen is unavailable here; the image still fills the page.";
+        }
+      }
+    });
+
+    backButton.addEventListener("click", closeFullScreenViewer);
+
+    previewButton.addEventListener("pointerdown", showSecondImageWhilePressed);
+    fullScreenImage.addEventListener("pointerdown", showSecondImageWhilePressed);
+    document.addEventListener("pointerup", restoreFirstImage);
+    document.addEventListener("pointercancel", restoreFirstImage);
+    previewButton.addEventListener("pointerleave", restoreFirstImage);
+    fullScreenImage.addEventListener("pointerleave", restoreFirstImage);
+    window.addEventListener("blur", restoreFirstImage);
+
+    document.addEventListener("fullscreenchange", () => {
+      if (document.fullscreenElement && fullScreenViewer.contains(document.fullscreenElement)) {
+        enteredNativeFullscreen = true;
+      } else if (enteredNativeFullscreen && !fullScreenViewer.hidden) {
+        enteredNativeFullscreen = false;
+        fullScreenViewer.hidden = true;
+        document.body.style.overflow = "";
+        restoreFirstImage();
+        runButton.focus();
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !fullScreenViewer.hidden && !document.fullscreenElement) {
+        fullScreenViewer.hidden = true;
+        document.body.style.overflow = "";
+        runButton.focus();
+      }
+    });
+
+    fullScreenImage.addEventListener("error", () => {
+      if (fullScreenViewer.hidden || !imageData[activeIndex]) return;
+      errorMessage.textContent = "";
+      errorMessage.textContent = "The image couldn't be shown full screen. Go back and choose it again.";
+    });
+
+    window.addEventListener("pagehide", () => {
+      stopTouchAudio();
+      if (audioUrl) URL.revokeObjectURL(audioUrl);
+    });
+
+  </script>
+</body>
+</html>
